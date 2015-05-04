@@ -6,30 +6,43 @@
 //=  Using node-rest-client available using  NPM
 //=  npm install node-rest-client
 //=
-//=  The usr variable should be in the form of "domain/username"
+//=  The usr variable should be in the form of 'domain/username'
 //=======================================================================
 var Client = require('node-rest-client').Client;
 var mongo = require('mongodb').MongoClient, format = require('util').format;
 
-var usr = "<domain>/<username>";
-var pwd = "<password>";
+//required for dealing with CSV files
+var Converter=require('csvtojson').core.Converter;
+var csvConverter=new Converter({constructResult:false});
+
+var usr = '<domain>/<username>';
+var pwd = '<password>';
 var options_auth={user: usr, password: pwd};
 
-client = new Client(options_auth);
+//variables for conversion of data read/write
+var readStream=require('fs').createReadStream('inputData.csv');
+var writeStream=require('fs').createWriteStream('outpuData.json');
+
+var client = new Client(options_auth);
+
+//============================
+//=  Parse CSV to JSON
+//============================
+readStream.pipe(csvConverter).pipe(writeStream);
 
 
 //============================
 // = REGIONS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/regions/getall/false", function(data, response)
+/*client.get('https://www.resilienceone.com/r1importsapi/api/regions/getall/false', function(data, response)
     {
-        // console.log("================= START =====================")
+        // console.log('================= START =====================')
         // console.log(data);
-        // console.log("=================   END   =====================")
+        // console.log('=================   END   =====================')
 
         var obj = JSON.parse(data);
 
-        mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+        mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
         {
             if(err){
                 return console.log(err);}
@@ -50,36 +63,36 @@ client = new Client(options_auth);
 // = REGIONS POST
 //============================
 /*var args = {
-  data: [{"UniqueClientId":"Region1_v6_Upgrade","Name":"Region 1","Description":"Base Region installed as part of v6.0 upgrade","IsActive":true,"CreateDate":"2012-05-07T13:55:30","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.047"}
-  ,{"UniqueClientId":"Region2","Name":"Canada","Description":"USA North","IsActive":true,"CreateDate":"2012-08-03T18:41:18","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.263"}
-  ,{"UniqueClientId":"1234","Name":"region1234","Description":"Update test","IsActive":true,"CreateDate":"2013-08-09T12:49:31.94","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.263"}
-  ,{"UniqueClientId":"Region_ABC","Name":"ABC Region","Description":"Test Region","IsActive":true,"CreateDate":"2014-05-06T13:52:01.717","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.28"}
-  ,{"UniqueClientId":"region_1234","Name":"sample region 2","Description":"sample region 2","IsActive":true,"CreateDate":"2014-07-10T14:13:00.963","LastUpdatedBy":"v7/sbcpadmin","LastUpdatedDate":"2014-09-10T17:46:52.92"}
-  ,{"UniqueClientId":"Americs_SW","Name":"Americs SW","Description":"for facilities in SouthWest US","IsActive":true,"CreateDate":"2014-08-28T15:23:03.18","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.28"}
-  ,{"UniqueClientId":"Americas_SW","Name":"Americas - SouthWest","Description":"facilities in SW US","IsActive":true,"CreateDate":"2014-09-02T14:41:22.373","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.293"}
-  ,{"UniqueClientId":"Americas_WesternRegion","Name":"Americas - Western","Description":"Americas_WesternRegion_IncludingHawaii_and_PuertoRico","IsActive":true,"CreateDate":"2014-09-02T17:24:11.117","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-09-05T14:43:30.293"}
-  ,{"UniqueClientId":"Americas_Eastern","Name":"Americas - Eastern","Description":"facilities in the East","IsActive":true,"CreateDate":"2014-09-05T14:43:30.293","LastUpdatedBy":null,"LastUpdatedDate":"2014-09-05T14:43:30.293"}
-  ,{"UniqueClientId":"Americas_ZZZZZ","Name":"Americas - ZZZZZ","Description":"facilities in the ZZZZZ","IsActive":true,"CreateDate":"2014-09-05T14:43:30.293","LastUpdatedBy":null,"LastUpdatedDate":"2014-09-05T14:43:30.293"}],
-  headers:{"Content-Type": "application/json"}
+  data: [{'UniqueClientId':'Region1_v6_Upgrade','Name':'Region 1','Description':'Base Region installed as part of v6.0 upgrade','IsActive':true,'CreateDate':'2012-05-07T13:55:30','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.047'}
+  ,{'UniqueClientId':'Region2','Name':'Canada','Description':'USA North','IsActive':true,'CreateDate':'2012-08-03T18:41:18','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.263'}
+  ,{'UniqueClientId':'1234','Name':'region1234','Description':'Update test','IsActive':true,'CreateDate':'2013-08-09T12:49:31.94','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.263'}
+  ,{'UniqueClientId':'Region_ABC','Name':'ABC Region','Description':'Test Region','IsActive':true,'CreateDate':'2014-05-06T13:52:01.717','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.28'}
+  ,{'UniqueClientId':'region_1234','Name':'sample region 2','Description':'sample region 2','IsActive':true,'CreateDate':'2014-07-10T14:13:00.963','LastUpdatedBy':'v7/sbcpadmin','LastUpdatedDate':'2014-09-10T17:46:52.92'}
+  ,{'UniqueClientId':'Americs_SW','Name':'Americs SW','Description':'for facilities in SouthWest US','IsActive':true,'CreateDate':'2014-08-28T15:23:03.18','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.28'}
+  ,{'UniqueClientId':'Americas_SW','Name':'Americas - SouthWest','Description':'facilities in SW US','IsActive':true,'CreateDate':'2014-09-02T14:41:22.373','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.293'}
+  ,{'UniqueClientId':'Americas_WesternRegion','Name':'Americas - Western','Description':'Americas_WesternRegion_IncludingHawaii_and_PuertoRico','IsActive':true,'CreateDate':'2014-09-02T17:24:11.117','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-09-05T14:43:30.293'}
+  ,{'UniqueClientId':'Americas_Eastern','Name':'Americas - Eastern','Description':'facilities in the East','IsActive':true,'CreateDate':'2014-09-05T14:43:30.293','LastUpdatedBy':null,'LastUpdatedDate':'2014-09-05T14:43:30.293'}
+  ,{'UniqueClientId':'Americas_ZZZZZ','Name':'Americas - ZZZZZ','Description':'facilities in the ZZZZZ','IsActive':true,'CreateDate':'2014-09-05T14:43:30.293','LastUpdatedBy':null,'LastUpdatedDate':'2014-09-05T14:43:30.293'}],
+  headers:{'Content-Type': 'application/json'}
 };
 
-client.post("https://www.resilienceone.com/r1importsapi/api/regions/PostList", args, function(data,response) {
-            console.log("================= START =====================")
+client.post('https://www.resilienceone.com/r1importsapi/api/regions/PostList', args, function(data,response) {
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 });*/
 
 //============================
 //= FACILITIES GET
 //============================
-client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/false", function(data, response){
-            console.log("================= START =====================");
+client.get('https://www.resilienceone.com/r1importsapi/api/facilities/getall/false', function(data, response){
+            console.log('================= START =====================');
             console.log(data);
-            console.log("=================   END   =====================");
+            console.log('=================   END   =====================');
 
             // var obj = JSON.parse(data);
 
-            // mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            // mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             // {
             //     if(err){
             //         return console.log(err);}
@@ -103,14 +116,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= DEPARTMENTS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/departments/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/departments/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -134,14 +147,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= USERS GET
 //============================
-// client.get("https://www.resilienceone.com/r1importsapi/api/users/getall/false", function(data, response){
-//             console.log("================= START =====================");
+// client.get('https://www.resilienceone.com/r1importsapi/api/users/getall/false', function(data, response){
+//             console.log('================= START =====================');
 //             console.log(data);
-//             console.log("=================   END   =====================");
+//             console.log('=================   END   =====================');
 
 // //             var obj = JSON.parse(data);
 
-// //             mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+// //             mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
 // //             {
 // //                 if(err){
 // //                     return console.log(err);}
@@ -161,27 +174,27 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= USERS POST
 //============================
-// var args = {data: [{"UniqueClientId":"9898789","LastName":" ","FirstName":"SBCP Administrator","MiddleInitial":" ","LoginId":"SBCPAdmin","Suffix":" ","Email":"sbcpadmin989789@strategicbcp.com","AltEmail":"","AltEmail2":"","WorkPhone":"","Extension":"","MobilePhone":"","HomePhone":"","Pager":"","PrimaryPhone":"","Address1":null,"Address2":null,"City":null,"StateCode":null,"PostalCode":null,"CountryCode":null,"TitleOfPersonWhoPerformsId":null,"Notes":"","EmergencyContactName":"","EmergencyContactNumber":"","EmergencyContactExtension":"","FacilityId":"1","FloorNumber":"","OfficeNumber":"","DepartmentId":null,"IsUser":true,"IsActive":true,"IsPrivate":false,"IsExecutive":false,"CanDeclareEvents":false,"IsExternalContact":false,"IsLocked":false,"IsCMTeamMember":false,"IsSiteAdmin":false,"CreateDate":"2007-12-21T00:00:00","LastUpdatedBy":"V7/SBCPAdmin","LastUpdatedDate":"2014-08-27T17:17:43.927"}],
-//   headers:{"Content-Type": "application/json"}
+// var args = {data: [{'UniqueClientId':'9898789','LastName':' ','FirstName':'SBCP Administrator','MiddleInitial':' ','LoginId':'SBCPAdmin','Suffix':' ','Email':'sbcpadmin989789@strategicbcp.com','AltEmail':'','AltEmail2':'','WorkPhone':'','Extension':'','MobilePhone':'','HomePhone':'','Pager':'','PrimaryPhone':'','Address1':null,'Address2':null,'City':null,'StateCode':null,'PostalCode':null,'CountryCode':null,'TitleOfPersonWhoPerformsId':null,'Notes':'','EmergencyContactName':'','EmergencyContactNumber':'','EmergencyContactExtension':'','FacilityId':'1','FloorNumber':'','OfficeNumber':'','DepartmentId':null,'IsUser':true,'IsActive':true,'IsPrivate':false,'IsExecutive':false,'CanDeclareEvents':false,'IsExternalContact':false,'IsLocked':false,'IsCMTeamMember':false,'IsSiteAdmin':false,'CreateDate':'2007-12-21T00:00:00','LastUpdatedBy':'V7/SBCPAdmin','LastUpdatedDate':'2014-08-27T17:17:43.927'}],
+//   headers:{'Content-Type': 'application/json'}
 // };
 
-// client.post("https://www.resilienceone.com/r1importsapi/api/users/PostList", args, function(data,response) {
-//             console.log("================= START =====================")
+// client.post('https://www.resilienceone.com/r1importsapi/api/users/PostList', args, function(data,response) {
+//             console.log('================= START =====================')
 //             console.log(data);
-//             console.log("=================   END   =====================")
+//             console.log('=================   END   =====================')
 // });
 
 //============================
 //= TEAMS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/teams/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/teams/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -205,14 +218,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= CALL TREES GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/calltrees/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/calltrees/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -236,14 +249,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= BUSIINESS FUNCTIONS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/businessfunctions/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/businessfunctions/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -267,14 +280,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= BUSINESS PROCESSES GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/businessprocesses/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/businessprocesses/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -298,14 +311,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= SUPPORT COMPONENTS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/supportcomponents/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/supportcomponents/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -329,14 +342,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= SERVERS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/servers/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/servers/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -360,14 +373,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= VENDORS GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/vendors/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/vendors/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
@@ -391,14 +404,14 @@ client.get("https://www.resilienceone.com/r1importsapi/api/facilities/getall/fal
 //============================
 //= CRISIS MANAGEMENT GET
 //============================
-/*client.get("https://www.resilienceone.com/r1importsapi/api/crisismanagement/getall/false", function(data, response){
-            console.log("================= START =====================")
+/*client.get('https://www.resilienceone.com/r1importsapi/api/crisismanagement/getall/false', function(data, response){
+            console.log('================= START =====================')
             console.log(data);
-            console.log("=================   END   =====================")
+            console.log('=================   END   =====================')
 
             var obj = JSON.parse(data);
 
-            mongo.connect("mongodb://127.0.0.1:27017/local", function(err, db)
+            mongo.connect('mongodb://127.0.0.1:27017/local', function(err, db)
             {
                 if(err){
                     return console.log(err);}
